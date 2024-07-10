@@ -1,44 +1,81 @@
-
-apiVersion: container.gcp.crossplane.io/v1beta2
+apiVersion: container.gcp.upbound.io/v1beta1
 kind: Cluster
 metadata:
-  name: example-cluster
+  labels:
+    cluster_name: gke
+  name: gke-managed-resources
 spec:
   forProvider:
-    initialClusterVersion: latest
-    location: us-central1
-    addonsConfig:
-      gcePersistentDiskCsiDriverConfig:
-        enabled: true
-    network: "default"
+    enableAutopilot: false
+    enableIntranodeVisibility: true
+    ipAllocationPolicy:
+      - {}
+    initialNodeCount: 1
+    region: us-central1
+    removeDefaultNodePool: true
+  writeConnectionSecretToRef:
+    name: gke-managed-resources-kubeconfig
+    namespace: crossplane-system
 ---
-apiVersion: container.gcp.crossplane.io/v1beta1
+apiVersion: container.gcp.upbound.io/v1beta1
 kind: NodePool
 metadata:
-  name: crossplane-np
+  labels:
+    cluster_name: gke
+  name: gke-managed-resources-nodepool
 spec:
   forProvider:
-    autoscaling:
-      autoprovisioned: false
-      enabled: true
-      maxNodeCount: 2
-      minNodeCount: 1  
-    clusterRef:
-      name: example-cluster
-    config:
-      machineType: n1-standard-1
-      diskSizeGb: 100
-      diskType: pd-standard
-      imageType: cos_containerd
-      labels:
-        test-label: crossplane-created
-      oauthScopes:
-      - "https://www.googleapis.com/auth/devstorage.read_only"
-      - "https://www.googleapis.com/auth/logging.write"
-      - "https://www.googleapis.com/auth/monitoring"
-      - "https://www.googleapis.com/auth/servicecontrol"
-      - "https://www.googleapis.com/auth/service.management.readonly"
-      - "https://www.googleapis.com/auth/trace.append"      
-    initialNodeCount: 1
-    locations:
-      - "us-central1-a"
+    clusterSelector:
+      matchLabels:
+        cluster_name: gke
+    nodeConfig:
+      - machineType: e2-small
+        diskSizeGb: 50
+        oauthScopes:
+          - https://www.googleapis.com/auth/cloud-platform
+        preemptible: true
+    nodeCount: 1
+
+# apiVersion: container.gcp.crossplane.io/v1beta2
+# kind: Cluster
+# metadata:
+#   name: example-cluster
+# spec:
+#   forProvider:
+#     initialClusterVersion: latest
+#     location: us-central1
+#     addonsConfig:
+#       gcePersistentDiskCsiDriverConfig:
+#         enabled: true
+#     network: "default"
+# ---
+# apiVersion: container.gcp.crossplane.io/v1beta1
+# kind: NodePool
+# metadata:
+#   name: crossplane-np
+# spec:
+#   forProvider:
+#     autoscaling:
+#       autoprovisioned: false
+#       enabled: true
+#       maxNodeCount: 2
+#       minNodeCount: 1  
+#     clusterRef:
+#       name: example-cluster
+#     config:
+#       machineType: n1-standard-1
+#       diskSizeGb: 100
+#       diskType: pd-standard
+#       imageType: cos_containerd
+#       labels:
+#         test-label: crossplane-created
+#       oauthScopes:
+#       - "https://www.googleapis.com/auth/devstorage.read_only"
+#       - "https://www.googleapis.com/auth/logging.write"
+#       - "https://www.googleapis.com/auth/monitoring"
+#       - "https://www.googleapis.com/auth/servicecontrol"
+#       - "https://www.googleapis.com/auth/service.management.readonly"
+#       - "https://www.googleapis.com/auth/trace.append"      
+#     initialNodeCount: 1
+#     locations:
+#       - "us-central1-a"
