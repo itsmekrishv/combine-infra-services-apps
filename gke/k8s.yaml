@@ -8,11 +8,10 @@ spec:
   forProvider:
     enableAutopilot: false
     enableIntranodeVisibility: true
-    location: us-central1
+    location: "us-central1"
     ipAllocationPolicy:
       - {}
     initialNodeCount: 1
-    region: us-central1
     removeDefaultNodePool: true
   writeConnectionSecretToRef:
     name: gke-managed-resources-kubeconfig
